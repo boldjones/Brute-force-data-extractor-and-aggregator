@@ -1,0 +1,897 @@
+Option Explicit
+
+'FINAL WORKING VERSION of script that opens workbooks and copies the respective scorecards to the master list
+'ONLY APPLICABLE TO THE LATEST VERSION OF WORKBOOK/SCORECARDS
+
+Sub CopiesSCsfromWBs()
+
+
+Dim directory As String
+Dim fName As String
+Dim detailed As Worksheet
+Dim importedWB As Workbook
+Dim wbCurrent As Workbook
+Dim importedWS As Worksheet
+Dim MasterList As Worksheet
+Dim SCwb As Workbook
+
+
+
+Dim celltxt As String
+Dim custname As String
+Dim FRP As String
+Dim Import As Worksheet
+Dim lRow As Integer
+'Dim newdirectory As String
+Dim ShortFileName As String
+Dim NewFileName As String
+
+Dim scount As Integer
+
+Dim i As Integer
+
+Dim exists As Boolean
+'Dim WorkSheetExists As Boolean
+Dim ws As Worksheet
+
+Dim PmtExp As String
+Dim YearswABC As String
+Dim Last90DayPayExp As String
+Dim WriteOffs As String
+Dim PmtTrend As String
+Dim ControlYrs As String
+Dim TimeInBus As String
+Dim SecuredOrNo As String
+Dim TypeOfGuarantee As String
+Dim FICO As String
+Dim PDbal As String
+Dim DelinqStatus As String
+Dim AvailCredit As String
+Dim Intelliscore As String
+Dim Paydex As String
+Dim ViabScore As String
+Dim BK As String
+Dim TypeOfRecFin As String
+Dim CurrRatio As String
+Dim DebtToEq As String
+Dim GP As String
+Dim NetInc As String
+Dim DebtToServRatio As String
+Dim AddCapReq As String
+Dim Segment As String
+
+Dim SUpmthist As String
+Dim SUyrsinbus As String
+Dim SUguarantorworth As String
+Dim SUvercash As String
+Dim SUpg As String
+Dim SUccg As String
+Dim SUfico As String
+Dim SUpdbal As String
+Dim SUpresdelq As String
+Dim SUrevcred As String
+Dim SUintell As String
+Dim SUpaydex As String
+Dim SUviab As String
+Dim SUbk As String
+Dim SUccgfin As String
+Dim SUcurratio As String
+Dim SUdtoeq As String
+Dim SUgp As String
+Dim SUni As String
+Dim SUdsrvratio As String
+Dim SUaddcap As String
+Dim SCtype As String
+
+Dim BGcntyrs As String
+Dim BGtimeinbus As String
+Dim BGpg As String
+Dim BGfico As String
+Dim BGpdbal As String
+Dim BGpresdelq As String
+Dim BGrevcred As String
+Dim BGintell As String
+Dim BGpaydex As String
+Dim BGviab As String
+Dim BGbk As String
+Dim wbDate As Date
+
+Dim Scorecard As Double
+Dim ScorecardSU As Double
+Dim ScorecardBG As Double
+
+
+Application.ScreenUpdating = False
+
+
+    'newdirectory = "C:\Users\a079164\Documents\TEST\New"
+    directory = "C:\Users\a079164\Documents\Projects with Dave\Workbooks for 10-9-17"
+    fName = Dir("C:\Users\a079164\Documents\Projects with Dave\Workbooks for 10-9-17\*.xls?")
+    'directory = "C:\Users\a079164\Documents\TEST\2-17-17 to 4-10-17"   this path is different because the script was run from my laptop
+    'fName = Dir("C:\Users\a079164\Documents\TEST\2-17-17 to 4-10-17\*.xls?")
+    
+    Set wbCurrent = ThisWorkbook
+    
+    lRow = 312
+    
+    
+Do While fName <> ""
+
+    wbCurrent.Activate
+    
+    ShortFileName = Left(fName, (Len(fName) - 5))
+    'NewFileName = (newdirectory & "\" & fName)
+    
+    Set importedWB = Workbooks.Open(directory & "\" & fName)
+    wbDate = FileDateTime(directory & "\" & fName)
+    lRow = lRow + 1
+    importedWB.Activate
+    
+    PmtExp = ""
+    YearswABC = ""
+    Last90DayPayExp = ""
+    WriteOffs = ""
+    PmtTrend = ""
+    ControlYrs = ""
+    TimeInBus = ""
+    SecuredOrNo = ""
+    TypeOfGuarantee = ""
+    FICO = ""
+    PDbal = ""
+    DelinqStatus = ""
+    AvailCredit = ""
+    Intelliscore = ""
+    Paydex = ""
+    ViabScore = ""
+    BK = ""
+    TypeOfRecFin = ""
+    CurrRatio = ""
+    DebtToEq = ""
+    GP = ""
+    NetInc = ""
+    DebtToServRatio = ""
+    AddCapReq = ""
+   
+   
+    With importedWB
+    
+        If .ProtectWindows Or .ProtectStructure Then
+        
+            ActiveWorkbook.Unprotect Password:="risk"
+            
+        End If
+        
+    End With
+    
+   ' For Each ws In ActiveWorkbook.Worksheets
+        'ws.Visible = xlSheetVisible
+    'Next ws
+    If Sheets("Input Sheet").Range("C14") = "Legal Entity Name" Then
+        custname = Sheets("Input Sheet").Range("D14")
+        celltxt = Sheets("Input Sheet").Range("F25").Text
+        
+        If Sheets("Input Sheet").Range("D9") <> "" Then
+            FRP = Sheets("Input Sheet").Range("D9")
+        Else
+            FRP = Sheets("Input Sheet").Range("D8")
+        End If
+    ElseIf Sheets("Input Sheet").Range("C18") = "Industry Number" Then
+    
+        custname = Sheets("Input Sheet").Range("D9")
+        celltxt = Sheets("Input Sheet").Range("F18").Text
+        
+        If Sheets("Input Sheet").Range("D9") <> "" Then
+            FRP = Sheets("Input Sheet").Range("D9")
+        Else
+            FRP = Sheets("Input Sheet").Range("D8")
+        End If
+    
+    Else
+        custname = Sheets("Input Sheet").Range("C14")
+
+        If Sheets("Input Sheet").Range("C33").Text <> "Drop down to pick" And Sheets("Input Sheet").Range("C33").Text <> "" Then
+                celltxt = Sheets("Input Sheet").Range("C33").Text
+        ElseIf Sheets("Input Sheet").Range("C34").Text <> "Drop down to pick" And Sheets("Input Sheet").Range("C33").Text = "" Then
+                celltxt = Sheets("Input Sheet").Range("C34").Text
+        Else
+                celltxt = Sheets("Exec Summary").Range("D9").Text
+        End If
+        
+        If Sheets("Input Sheet").Range("C9") <> "" Then
+            FRP = Sheets("Input Sheet").Range("C9")
+        Else
+            FRP = Sheets("Input Sheet").Range("C7")
+        End If
+    
+    End If
+    
+    If custname = "" Then
+    
+        custname = ShortFileName
+        
+    End If
+    
+    If InStr(1, celltxt, "Health Systems") > 0 Or InStr(1, celltxt, "new to ABC") > 0 Or InStr(1, celltxt, "current ABC") > 0 Or InStr(1, celltxt, "CSP") > 0 Or celltxt = "" Or celltxt = "Drop down to pick" Then
+        If celltxt = "" Or celltxt = "Drop down to pick" Then
+                celltxt = "CSP"
+        End If
+    
+        Set importedWS = Nothing
+        On Error Resume Next
+            Set importedWS = Worksheets("Scorecard CSP-HS")
+        On Error GoTo 0
+             
+        If importedWS Is Nothing Then
+            'Set importedWS = Nothing
+            On Error Resume Next
+                Set importedWS = Worksheets("CSP-HS")
+            On Error GoTo 0
+        End If
+             
+        If Not importedWS Is Nothing Then
+                
+            Segment = celltxt
+                 
+            If Not importedWS.Range("K85") = "" Then
+                Scorecard = importedWS.Range("K85")
+            Else
+                Scorecard = importedWS.Range("K86")
+            End If
+                 
+            If importedWS.Range("F11") <> "" Or importedWS.Range("F15") <> "" Then
+                     PmtExp = importedWS.Range("F11")
+                     YearswABC = importedWS.Range("F15")
+                     Last90DayPayExp = importedWS.Range("F17")
+                     WriteOffs = importedWS.Range("F19")
+                     PmtTrend = importedWS.Range("F21")
+                     ControlYrs = importedWS.Range("F23")
+                     TimeInBus = importedWS.Range("F25")
+                     SecuredOrNo = importedWS.Range("F27")
+                     TypeOfGuarantee = importedWS.Range("F29")
+                     FICO = importedWS.Range("F39")
+                     PDbal = importedWS.Range("F41")
+                     DelinqStatus = importedWS.Range("F43")
+                     AvailCredit = importedWS.Range("F45")
+                     Intelliscore = importedWS.Range("F48")
+                     Paydex = importedWS.Range("F50")
+                     ViabScore = importedWS.Range("F52")
+                     BK = importedWS.Range("F54")
+                     TypeOfRecFin = importedWS.Range("F63")
+                     CurrRatio = importedWS.Range("F67")
+                     DebtToEq = importedWS.Range("F69")
+                     GP = importedWS.Range("F71")
+                     NetInc = importedWS.Range("F73")
+                     DebtToServRatio = importedWS.Range("F75")
+                     AddCapReq = importedWS.Range("F77")
+           
+            ElseIf importedWS.Range("F10") <> "" Then
+                 
+                     PmtExp = importedWS.Range("F10")
+                     YearswABC = importedWS.Range("F14")
+                     Last90DayPayExp = importedWS.Range("F16")
+                     WriteOffs = importedWS.Range("F18")
+                     PmtTrend = importedWS.Range("F20")
+                     ControlYrs = importedWS.Range("F22")
+                     TimeInBus = importedWS.Range("F24")
+                     SecuredOrNo = importedWS.Range("F26")
+                     TypeOfGuarantee = importedWS.Range("F28")
+                     FICO = importedWS.Range("F38")
+                     PDbal = importedWS.Range("F40")
+                     DelinqStatus = importedWS.Range("F42")
+                     AvailCredit = importedWS.Range("F44")
+                     Intelliscore = importedWS.Range("F47")
+                     Paydex = importedWS.Range("F49")
+                     ViabScore = importedWS.Range("F51")
+                     BK = importedWS.Range("F53")
+                     TypeOfRecFin = importedWS.Range("F62")
+                     CurrRatio = importedWS.Range("F66")
+                     DebtToEq = importedWS.Range("F68")
+                     GP = importedWS.Range("F70")
+                     NetInc = importedWS.Range("F72")
+                     DebtToServRatio = importedWS.Range("F74")
+                     AddCapReq = importedWS.Range("F76")
+            Else
+                Set importedWS = Nothing
+            End If
+        End If
+        
+        If importedWS Is Nothing Then
+            Set importedWS = Nothing
+            On Error Resume Next
+                Set importedWS = Worksheets("Scorecard BG")
+            On Error GoTo 0
+            If importedWS Is Nothing Then
+                On Error Resume Next
+                        Set importedWS = Worksheets("BG")
+                On Error GoTo 0
+            End If
+            
+            If Not importedWS Is Nothing Then
+                Segment = celltxt
+                
+                If importedWS.Range("F13") <> "" Then
+                
+                    BGcntyrs = importedWS.Range("F13")
+                    BGtimeinbus = importedWS.Range("F15")
+                    BGpg = importedWS.Range("F17")
+                    BGfico = importedWS.Range("F26")
+                    BGpdbal = importedWS.Range("F28")
+                    BGpresdelq = importedWS.Range("F30")
+                    BGrevcred = importedWS.Range("F32")
+                    BGintell = importedWS.Range("F35")
+                    BGpaydex = importedWS.Range("F37")
+                    BGviab = importedWS.Range("F39")
+                    BGbk = importedWS.Range("F41")
+                         
+                    If importedWS.Range("K48") = "" Then
+                        ScorecardBG = importedWS.Range("K47")
+                    Else
+                        ScorecardBG = importedWS.Range("K48")
+                    End If
+                         
+                    If ScorecardBG = 0 Then
+                        ScorecardBG = 5
+                    End If
+                Else
+                    Set importedWS = Nothing
+                End If
+            End If
+        End If
+        
+        If importedWS Is Nothing Then
+        
+            Set importedWS = Nothing
+            On Error Resume Next
+                Set importedWS = Worksheets("Scorecard Start Up")
+            On Error GoTo 0
+            If importedWS Is Nothing Then
+                Set importedWS = Nothing
+                On Error Resume Next
+                    Set importedWS = Worksheets("Start Up")
+                On Error GoTo 0
+            End If
+            
+            If Not importedWS Is Nothing Then
+                    Segment = celltxt
+                                  
+                If importedWS.Range("F14") <> "" Then
+                
+                    SUpmthist = importedWS.Range("F10")
+                    SUyrsinbus = importedWS.Range("F12")
+                    SUguarantorworth = importedWS.Range("F14")
+                    SUvercash = importedWS.Range("F16")
+                    SUpg = importedWS.Range("F18")
+                    SUccg = importedWS.Range("F20")
+                    SUfico = importedWS.Range("F29")
+                    SUpdbal = importedWS.Range("F31")
+                    SUpresdelq = importedWS.Range("F33")
+                    SUrevcred = importedWS.Range("F35")
+                    SUintell = importedWS.Range("F38")
+                    SUpaydex = importedWS.Range("F40")
+                    SUviab = importedWS.Range("F42")
+                    SUbk = importedWS.Range("F44")
+                    SUccgfin = importedWS.Range("F52")
+                    SUcurratio = importedWS.Range("F56")
+                    SUdtoeq = importedWS.Range("F58")
+                    SUgp = importedWS.Range("F60")
+                    SUni = importedWS.Range("F62")
+                    SUdsrvratio = importedWS.Range("F64")
+                    SUaddcap = importedWS.Range("F66")
+                    ScorecardSU = importedWS.Range("K72")
+                    If ScorecardSU = 0 Then
+                        ScorecardSU = importedWS.Range("K73")
+                    End If
+                    If ScorecardSU = 0 Then
+                        ScorecardSU = importedWS.Range("K74")
+                    End If
+                    If ScorecardSU = 0 Then
+                        ScorecardSU = importedWS.Range("K75")
+                    End If
+                    If ScorecardSU = 0 Or ScorecardSU <= 1 Then
+                        ScorecardSU = 4.79
+                    End If
+                Else
+                    
+                    Set importedWS = Nothing
+                
+                End If
+            End If
+        End If
+    
+    'Need to add start up and BG scorecards now, anything above this line takes care of the CSP-HS scorecard even if
+    
+    ElseIf InStr(1, celltxt, "startup") > 0 Then
+    
+            Set importedWS = Nothing
+            On Error Resume Next
+                Set importedWS = Worksheets("Scorecard Start Up")
+            On Error GoTo 0
+            
+            If importedWS Is Nothing Then
+                Set importedWS = Nothing
+                On Error Resume Next
+                    Set importedWS = Worksheets("Start Up")
+                On Error GoTo 0
+            End If
+            
+            If Not importedWS Is Nothing Then
+                    Segment = celltxt
+                              
+                If importedWS.Range("F14") <> "" Then
+                
+                    SUpmthist = importedWS.Range("F10")
+                    SUyrsinbus = importedWS.Range("F12")
+                    SUguarantorworth = importedWS.Range("F14")
+                    SUvercash = importedWS.Range("F16")
+                    SUpg = importedWS.Range("F18")
+                    SUccg = importedWS.Range("F20")
+                    SUfico = importedWS.Range("F29")
+                    SUpdbal = importedWS.Range("F31")
+                    SUpresdelq = importedWS.Range("F33")
+                    SUrevcred = importedWS.Range("F35")
+                    SUintell = importedWS.Range("F38")
+                    SUpaydex = importedWS.Range("F40")
+                    SUviab = importedWS.Range("F42")
+                    SUbk = importedWS.Range("F44")
+                    SUccgfin = importedWS.Range("F52")
+                    SUcurratio = importedWS.Range("F56")
+                    SUdtoeq = importedWS.Range("F58")
+                    SUgp = importedWS.Range("F60")
+                    SUni = importedWS.Range("F62")
+                    SUdsrvratio = importedWS.Range("F64")
+                    SUaddcap = importedWS.Range("F66")
+                    ScorecardSU = importedWS.Range("K72")
+                    If ScorecardSU = 0 Then
+                        ScorecardSU = importedWS.Range("K73")
+                    End If
+                    If ScorecardSU = 0 Then
+                        ScorecardSU = importedWS.Range("K74")
+                    End If
+                    If ScorecardSU = 0 Then
+                        ScorecardSU = importedWS.Range("K75")
+                    End If
+                    If ScorecardSU = 0 Or ScorecardSU <= 1 Then
+                        ScorecardSU = 4.79
+                    End If
+                Else
+                
+                    Set importedWS = Nothing
+                End If
+                
+            End If
+            
+                    
+            If importedWS Is Nothing Then
+            
+                On Error Resume Next
+                    Set importedWS = Worksheets("Scorecard CSP-HS")
+                On Error GoTo 0
+                 
+                If importedWS Is Nothing Then
+                    'Set importedWS = Nothing
+                    On Error Resume Next
+                        Set importedWS = Worksheets("CSP-HS")
+                    On Error GoTo 0
+                
+                End If
+                
+                
+                If Not importedWS Is Nothing Then
+                
+                    Segment = celltxt
+                         
+                    If Not importedWS.Range("K85") = "" Then
+                        Scorecard = importedWS.Range("K85")
+                    Else
+                        Scorecard = importedWS.Range("K86")
+                    End If
+                 
+                    If importedWS.Range("F11") <> "" Or importedWS.Range("F15") <> "" Then
+                        PmtExp = importedWS.Range("F11")
+                        YearswABC = importedWS.Range("F15")
+                        Last90DayPayExp = importedWS.Range("F17")
+                        WriteOffs = importedWS.Range("F19")
+                        PmtTrend = importedWS.Range("F21")
+                        ControlYrs = importedWS.Range("F23")
+                        TimeInBus = importedWS.Range("F25")
+                        SecuredOrNo = importedWS.Range("F27")
+                        TypeOfGuarantee = importedWS.Range("F29")
+                        FICO = importedWS.Range("F39")
+                        PDbal = importedWS.Range("F41")
+                        DelinqStatus = importedWS.Range("F43")
+                        AvailCredit = importedWS.Range("F45")
+                        Intelliscore = importedWS.Range("F48")
+                        Paydex = importedWS.Range("F50")
+                        ViabScore = importedWS.Range("F52")
+                        BK = importedWS.Range("F54")
+                        TypeOfRecFin = importedWS.Range("F63")
+                        CurrRatio = importedWS.Range("F67")
+                        DebtToEq = importedWS.Range("F69")
+                        GP = importedWS.Range("F71")
+                        NetInc = importedWS.Range("F73")
+                        DebtToServRatio = importedWS.Range("F75")
+                        AddCapReq = importedWS.Range("F77")
+           
+                    ElseIf importedWS.Range("F10") <> "" Then
+                 
+                        PmtExp = importedWS.Range("F10")
+                        YearswABC = importedWS.Range("F14")
+                        Last90DayPayExp = importedWS.Range("F16")
+                        WriteOffs = importedWS.Range("F18")
+                        PmtTrend = importedWS.Range("F20")
+                        ControlYrs = importedWS.Range("F22")
+                        TimeInBus = importedWS.Range("F24")
+                        SecuredOrNo = importedWS.Range("F26")
+                        TypeOfGuarantee = importedWS.Range("F28")
+                        FICO = importedWS.Range("F38")
+                        PDbal = importedWS.Range("F40")
+                        DelinqStatus = importedWS.Range("F42")
+                        AvailCredit = importedWS.Range("F44")
+                        Intelliscore = importedWS.Range("F47")
+                        Paydex = importedWS.Range("F49")
+                        ViabScore = importedWS.Range("F51")
+                        BK = importedWS.Range("F53")
+                        TypeOfRecFin = importedWS.Range("F62")
+                        CurrRatio = importedWS.Range("F66")
+                        DebtToEq = importedWS.Range("F68")
+                        GP = importedWS.Range("F70")
+                        NetInc = importedWS.Range("F72")
+                        DebtToServRatio = importedWS.Range("F74")
+                        AddCapReq = importedWS.Range("F76")
+                    Else
+                        Set importedWS = Nothing
+                    End If
+                End If
+            End If
+            
+            If importedWS Is Nothing Then
+                Set importedWS = Nothing
+                On Error Resume Next
+                    Set importedWS = Worksheets("Scorecard BG")
+                On Error GoTo 0
+                If importedWS Is Nothing Then
+                    On Error Resume Next
+                            Set importedWS = Worksheets("BG")
+                    On Error GoTo 0
+                End If
+            
+                If Not importedWS Is Nothing Then
+                    Segment = celltxt
+                    
+                    If importedWS.Range("F13") <> "" Then
+                    
+                        BGcntyrs = importedWS.Range("F13")
+                        BGtimeinbus = importedWS.Range("F15")
+                        BGpg = importedWS.Range("F17")
+                        BGfico = importedWS.Range("F26")
+                        BGpdbal = importedWS.Range("F28")
+                        BGpresdelq = importedWS.Range("F30")
+                        BGrevcred = importedWS.Range("F32")
+                        BGintell = importedWS.Range("F35")
+                        BGpaydex = importedWS.Range("F37")
+                        BGviab = importedWS.Range("F39")
+                        BGbk = importedWS.Range("F41")
+                             
+                        If importedWS.Range("K48") = "" Then
+                            ScorecardBG = importedWS.Range("K47")
+                        Else
+                            ScorecardBG = importedWS.Range("K48")
+                        End If
+                             
+                        If ScorecardBG = 0 Then
+                            ScorecardBG = 5
+                        End If
+                    Else
+                        Set importedWS = Nothing
+                    End If
+                End If
+            End If
+    
+    ElseIf InStr(1, celltxt, "BG") > 0 Or InStr(1, celltxt, "Bellco") > 0 Then
+    
+            Set importedWS = Nothing
+            On Error Resume Next
+                Set importedWS = Worksheets("Scorecard BG")
+            On Error GoTo 0
+            
+            If importedWS Is Nothing Then
+                Set importedWS = Nothing
+                On Error Resume Next
+                    Set importedWS = Worksheets("BG")
+                On Error GoTo 0
+            End If
+            
+            If Not importedWS Is Nothing Then
+                Segment = celltxt
+                        
+                If importedWS.Range("F13") <> "" Then
+                    
+                        BGcntyrs = importedWS.Range("F13")
+                        BGtimeinbus = importedWS.Range("F15")
+                        BGpg = importedWS.Range("F17")
+                        BGfico = importedWS.Range("F26")
+                        BGpdbal = importedWS.Range("F28")
+                        BGpresdelq = importedWS.Range("F30")
+                        BGrevcred = importedWS.Range("F32")
+                        BGintell = importedWS.Range("F35")
+                        BGpaydex = importedWS.Range("F37")
+                        BGviab = importedWS.Range("F39")
+                        BGbk = importedWS.Range("F41")
+                             
+                        If importedWS.Range("K48") = "" Then
+                            ScorecardBG = importedWS.Range("K47")
+                        Else
+                            ScorecardBG = importedWS.Range("K48")
+                        End If
+                             
+                        If ScorecardBG = 0 Then
+                            ScorecardBG = 5
+                        End If
+                Else
+                        Set importedWS = Nothing
+                End If
+            End If
+                    
+            If importedWS Is Nothing Then
+            
+                On Error Resume Next
+                    Set importedWS = Worksheets("Scorecard CSP-HS")
+                On Error GoTo 0
+                 
+                If importedWS Is Nothing Then
+                    'Set importedWS = Nothing
+                    On Error Resume Next
+                        Set importedWS = Worksheets("CSP-HS")
+                    On Error GoTo 0
+                
+                End If
+                
+                
+                If Not importedWS Is Nothing Then
+                
+                    Segment = celltxt
+                         
+                    If Not importedWS.Range("K85") = "" Then
+                        Scorecard = importedWS.Range("K85")
+                    Else
+                        Scorecard = importedWS.Range("K86")
+                    End If
+                 
+                    If importedWS.Range("F11") <> "" Or importedWS.Range("F15") <> "" Then
+                        PmtExp = importedWS.Range("F11")
+                        YearswABC = importedWS.Range("F15")
+                        Last90DayPayExp = importedWS.Range("F17")
+                        WriteOffs = importedWS.Range("F19")
+                        PmtTrend = importedWS.Range("F21")
+                        ControlYrs = importedWS.Range("F23")
+                        TimeInBus = importedWS.Range("F25")
+                        SecuredOrNo = importedWS.Range("F27")
+                        TypeOfGuarantee = importedWS.Range("F29")
+                        FICO = importedWS.Range("F39")
+                        PDbal = importedWS.Range("F41")
+                        DelinqStatus = importedWS.Range("F43")
+                        AvailCredit = importedWS.Range("F45")
+                        Intelliscore = importedWS.Range("F48")
+                        Paydex = importedWS.Range("F50")
+                        ViabScore = importedWS.Range("F52")
+                        BK = importedWS.Range("F54")
+                        TypeOfRecFin = importedWS.Range("F63")
+                        CurrRatio = importedWS.Range("F67")
+                        DebtToEq = importedWS.Range("F69")
+                        GP = importedWS.Range("F71")
+                        NetInc = importedWS.Range("F73")
+                        DebtToServRatio = importedWS.Range("F75")
+                        AddCapReq = importedWS.Range("F77")
+           
+                    ElseIf importedWS.Range("F10") <> "" Then
+                 
+                        PmtExp = importedWS.Range("F10")
+                        YearswABC = importedWS.Range("F14")
+                        Last90DayPayExp = importedWS.Range("F16")
+                        WriteOffs = importedWS.Range("F18")
+                        PmtTrend = importedWS.Range("F20")
+                        ControlYrs = importedWS.Range("F22")
+                        TimeInBus = importedWS.Range("F24")
+                        SecuredOrNo = importedWS.Range("F26")
+                        TypeOfGuarantee = importedWS.Range("F28")
+                        FICO = importedWS.Range("F38")
+                        PDbal = importedWS.Range("F40")
+                        DelinqStatus = importedWS.Range("F42")
+                        AvailCredit = importedWS.Range("F44")
+                        Intelliscore = importedWS.Range("F47")
+                        Paydex = importedWS.Range("F49")
+                        ViabScore = importedWS.Range("F51")
+                        BK = importedWS.Range("F53")
+                        TypeOfRecFin = importedWS.Range("F62")
+                        CurrRatio = importedWS.Range("F66")
+                        DebtToEq = importedWS.Range("F68")
+                        GP = importedWS.Range("F70")
+                        NetInc = importedWS.Range("F72")
+                        DebtToServRatio = importedWS.Range("F74")
+                        AddCapReq = importedWS.Range("F76")
+                    Else
+                        Set importedWS = Nothing
+                    End If
+                End If
+            End If
+            
+            If importedWS Is Nothing Then
+                Set importedWS = Nothing
+                On Error Resume Next
+                    Set importedWS = Worksheets("Scorecard Start Up")
+                On Error GoTo 0
+                If importedWS Is Nothing Then
+                    On Error Resume Next
+                            Set importedWS = Worksheets("Start Up")
+                    On Error GoTo 0
+                End If
+            
+                If Not importedWS Is Nothing Then
+                    Segment = celltxt
+                    
+                    If importedWS.Range("F14") <> "" Then
+                
+                        SUpmthist = importedWS.Range("F10")
+                        SUyrsinbus = importedWS.Range("F12")
+                        SUguarantorworth = importedWS.Range("F14")
+                        SUvercash = importedWS.Range("F16")
+                        SUpg = importedWS.Range("F18")
+                        SUccg = importedWS.Range("F20")
+                        SUfico = importedWS.Range("F29")
+                        SUpdbal = importedWS.Range("F31")
+                        SUpresdelq = importedWS.Range("F33")
+                        SUrevcred = importedWS.Range("F35")
+                        SUintell = importedWS.Range("F38")
+                        SUpaydex = importedWS.Range("F40")
+                        SUviab = importedWS.Range("F42")
+                        SUbk = importedWS.Range("F44")
+                        SUccgfin = importedWS.Range("F52")
+                        SUcurratio = importedWS.Range("F56")
+                        SUdtoeq = importedWS.Range("F58")
+                        SUgp = importedWS.Range("F60")
+                        SUni = importedWS.Range("F62")
+                        SUdsrvratio = importedWS.Range("F64")
+                        SUaddcap = importedWS.Range("F66")
+                        ScorecardSU = importedWS.Range("K72")
+                        If ScorecardSU = 0 Then
+                            ScorecardSU = importedWS.Range("K73")
+                        End If
+                        If ScorecardSU = 0 Then
+                            ScorecardSU = importedWS.Range("K74")
+                        End If
+                        If ScorecardSU = 0 Then
+                            ScorecardSU = importedWS.Range("K75")
+                        End If
+                        If ScorecardSU = 0 Or ScorecardSU <= 1 Then
+                            ScorecardSU = 4.79
+                        End If
+                    Else
+                
+                        Set importedWS = Nothing
+                    End If
+    
+                End If
+            End If
+
+    End If
+    
+    
+    wbCurrent.Activate
+    
+    If Not importedWS Is Nothing Then
+    
+        If lRow > 0 Then
+             
+            If importedWS.Name = "Scorecard CSP-HS" Or importedWS.Name = "CSP-HS" Then
+            
+            'If Segment = "2000 - CSP (new to ABC)" Or Segment = "2000 - CSP (current ABC)" Or Segment = "3000 - Health Systems" Or Segment = "7000 - National" Then
+                
+                Sheets("Master List-RAW").Cells(lRow, 1) = wbDate
+                Sheets("Master List-RAW").Cells(lRow, 2) = custname
+                Sheets("Master List-RAW").Cells(lRow, 7) = "Scorecard CSP-HS"
+                Sheets("Master List-RAW").Cells(lRow, 8) = Segment
+                Sheets("Master List-RAW").Cells(lRow, 9) = FRP
+                Sheets("Master List-RAW").Cells(lRow, 11) = Scorecard
+                Sheets("Master List-RAW").Cells(lRow, 12) = PmtExp
+                Sheets("Master List-RAW").Cells(lRow, 13) = YearswABC
+                Sheets("Master List-RAW").Cells(lRow, 14) = Last90DayPayExp
+                Sheets("Master List-RAW").Cells(lRow, 15) = WriteOffs
+                Sheets("Master List-RAW").Cells(lRow, 16) = PmtTrend
+                Sheets("Master List-RAW").Cells(lRow, 17) = ControlYrs
+                Sheets("Master List-RAW").Cells(lRow, 18) = TimeInBus
+                Sheets("Master List-RAW").Cells(lRow, 19) = SecuredOrNo
+                Sheets("Master List-RAW").Cells(lRow, 20) = TypeOfGuarantee
+                Sheets("Master List-RAW").Cells(lRow, 21) = FICO
+                Sheets("Master List-RAW").Cells(lRow, 22) = PDbal
+                Sheets("Master List-RAW").Cells(lRow, 23) = DelinqStatus
+                Sheets("Master List-RAW").Cells(lRow, 24) = AvailCredit
+                Sheets("Master List-RAW").Cells(lRow, 25) = Intelliscore
+                Sheets("Master List-RAW").Cells(lRow, 26) = Paydex
+                Sheets("Master List-RAW").Cells(lRow, 27) = ViabScore
+                Sheets("Master List-RAW").Cells(lRow, 28) = BK
+                Sheets("Master List-RAW").Cells(lRow, 29) = TypeOfRecFin
+                Sheets("Master List-RAW").Cells(lRow, 30) = CurrRatio
+                Sheets("Master List-RAW").Cells(lRow, 31) = DebtToEq
+                Sheets("Master List-RAW").Cells(lRow, 32) = GP
+                Sheets("Master List-RAW").Cells(lRow, 33) = NetInc
+                Sheets("Master List-RAW").Cells(lRow, 34) = DebtToServRatio
+                Sheets("Master List-RAW").Cells(lRow, 35) = AddCapReq
+       
+            ElseIf importedWS.Name = "Scorecard Start Up" Or importedWS.Name = "Start Up" Then
+                
+                Sheets("Master List-RAW").Cells(lRow, 1) = wbDate
+                Sheets("Master List-RAW").Cells(lRow, 2) = custname
+                Sheets("Master List-RAW").Cells(lRow, 7) = "Scorecard Start Up"
+                Sheets("Master List-RAW").Cells(lRow, 8) = Segment
+                Sheets("Master List-RAW").Cells(lRow, 9) = FRP
+                Sheets("Master List-RAW").Cells(lRow, 11) = ScorecardSU
+                Sheets("Master List-RAW").Cells(lRow, 12) = SUpmthist
+                Sheets("Master List-RAW").Cells(lRow, 13) = SUyrsinbus
+                Sheets("Master List-RAW").Cells(lRow, 14) = SUguarantorworth
+                Sheets("Master List-RAW").Cells(lRow, 15) = SUvercash
+                Sheets("Master List-RAW").Cells(lRow, 16) = SUpg
+                Sheets("Master List-RAW").Cells(lRow, 17) = SUccg
+                Sheets("Master List-RAW").Cells(lRow, 18) = SUfico
+                Sheets("Master List-RAW").Cells(lRow, 19) = SUpdbal
+                Sheets("Master List-RAW").Cells(lRow, 20) = SUpresdelq
+                Sheets("Master List-RAW").Cells(lRow, 21) = SUrevcred
+                Sheets("Master List-RAW").Cells(lRow, 22) = SUintell
+                Sheets("Master List-RAW").Cells(lRow, 23) = SUpaydex
+                Sheets("Master List-RAW").Cells(lRow, 24) = SUviab
+                Sheets("Master List-RAW").Cells(lRow, 25) = SUbk
+                Sheets("Master List-RAW").Cells(lRow, 26) = SUccgfin
+                Sheets("Master List-RAW").Cells(lRow, 27) = SUcurratio
+                Sheets("Master List-RAW").Cells(lRow, 28) = SUdtoeq
+                Sheets("Master List-RAW").Cells(lRow, 29) = SUgp
+                Sheets("Master List-RAW").Cells(lRow, 30) = SUni
+                Sheets("Master List-RAW").Cells(lRow, 31) = SUdsrvratio
+                Sheets("Master List-RAW").Cells(lRow, 32) = SUaddcap
+    
+        
+            ElseIf importedWS.Name = "Scorecard BG" Or importedWS.Name = "BG" Then
+            
+                Sheets("Master List-RAW").Cells(lRow, 1) = wbDate
+                Sheets("Master List-RAW").Cells(lRow, 2) = custname
+                Sheets("Master List-RAW").Cells(lRow, 7) = "Scorecard BG"
+                Sheets("Master List-RAW").Cells(lRow, 8) = Segment
+                Sheets("Master List-RAW").Cells(lRow, 9) = FRP
+                Sheets("Master List-RAW").Cells(lRow, 11) = ScorecardBG
+                Sheets("Master List-RAW").Cells(lRow, 12) = BGcntyrs
+                Sheets("Master List-RAW").Cells(lRow, 13) = BGtimeinbus
+                Sheets("Master List-RAW").Cells(lRow, 14) = BGpg
+                Sheets("Master List-RAW").Cells(lRow, 15) = BGfico
+                Sheets("Master List-RAW").Cells(lRow, 16) = BGpdbal
+                Sheets("Master List-RAW").Cells(lRow, 17) = BGpresdelq
+                Sheets("Master List-RAW").Cells(lRow, 18) = BGrevcred
+                Sheets("Master List-RAW").Cells(lRow, 19) = BGintell
+                Sheets("Master List-RAW").Cells(lRow, 20) = BGpaydex
+                Sheets("Master List-RAW").Cells(lRow, 21) = BGviab
+                Sheets("Master List-RAW").Cells(lRow, 22) = BGbk
+            
+            End If
+        
+        End If
+    
+    ElseIf importedWS Is Nothing Then
+
+                Sheets("Master List-RAW").Cells(lRow, 1) = wbDate
+                Sheets("Master List-RAW").Cells(lRow, 2) = custname
+                Sheets("Master List-RAW").Cells(lRow, 7) = "None"
+                Sheets("Master List-RAW").Cells(lRow, 8) = Segment
+                Sheets("Master List-RAW").Cells(lRow, 9) = FRP
+                Sheets("Master List-RAW").Cells(lRow, 11) = "No scorecard"
+       
+    End If
+    Set importedWS = Nothing
+    importedWB.Close SaveChanges:=False
+    Application.DisplayAlerts = False
+    fName = Dir()
+    
+    Application.DisplayAlerts = False
+
+  
+Loop
+
+Application.ScreenUpdating = True
+
+End Sub
